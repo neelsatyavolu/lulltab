@@ -1,0 +1,329 @@
+@font-face {
+  font-family: "Fraunces";
+  src: url("../fonts/fraunces-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Fraunces";
+  src: url("../fonts/fraunces-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Fraunces";
+  src: url("../fonts/fraunces-italic.woff2") format("woff2");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Public Sans";
+  src: url("../fonts/public-sans-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Public Sans";
+  src: url("../fonts/public-sans-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Public Sans";
+  src: url("../fonts/public-sans-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg: #171917;
+  --bg-2: #1e211f;
+  --ink: #e7ece8;
+  --muted: #8a938c;
+  --faint: #5c6560;
+  --line: #2c322f;
+  --rest: #b7c7bb;
+  --paper: #e7ece8;
+  --rose: #c27a6a;
+  --serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", serif;
+  --sans: "Public Sans", "Segoe UI", sans-serif;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  position: relative;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+h1,
+h2 {
+  text-wrap: balance;
+}
+
+.switch {
+  --w: 48px;
+  --h: 28px;
+  position: relative;
+  width: var(--w);
+  height: var(--h);
+  border: 0;
+  border-radius: 999px;
+  background: var(--line);
+  transition-property: background, box-shadow;
+  transition-duration: 180ms;
+  transition-timing-function: var(--ease);
+}
+
+.switch .knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition-property: transform, background;
+  transition-duration: 180ms;
+  transition-timing-function: var(--ease);
+}
+
+.switch[aria-checked="true"] {
+  background: var(--rest);
+}
+
+.switch[aria-checked="true"] .knob {
+  transform: translateX(20px);
+  background: #171917;
+}
+
+.switch:active {
+  transform: scale(0.96);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--bg-2);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  transition-property: transform, background, color;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease);
+}
+
+.btn:hover {
+  background: #262a27;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn.primary {
+  background: var(--rest);
+  color: #171917;
+}
+
+.btn.primary:hover {
+  background: #c5d4c8;
+}
+
+.btn.ghost {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.btn.link {
+  background: transparent;
+  min-height: 32px;
+  padding: 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.btn.link:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(183, 199, 187, 0.12);
+  color: var(--rest);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.pill.sage {
+  background: rgba(183, 199, 187, 0.14);
+  color: var(--rest);
+}
+
+.pill.mute {
+  background: rgba(244, 234, 216, 0.06);
+  color: var(--muted);
+}
+
+.field {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #121413;
+  box-shadow: inset 0 0 0 1px var(--line);
+  outline: none;
+  transition-property: box-shadow;
+  transition-duration: 160ms;
+}
+
+.field:focus {
+  box-shadow: inset 0 0 0 1px var(--rest);
+}
+
+.check {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 0;
+}
+
+.check input {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  flex: 0 0 18px;
+  border-radius: 5px;
+  background: #121413;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.check input:checked {
+  background: var(--rest);
+  box-shadow: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='none' stroke='%23171917' stroke-width='2' d='M3.5 8.2 6.6 11.2 12.5 4.8'/></svg>");
+  background-size: 12px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.check .copy strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.check .copy span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  background: transparent;
+}
+
+.range:focus {
+  outline: none;
+}
+
+.range::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--rest);
+}
+
+.demo-banner {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

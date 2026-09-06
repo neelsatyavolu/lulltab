@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=360" />
+    <title>Still</title>
+    <link rel="stylesheet" href="../shared/theme.css" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="sheet">
+      <p id="demo" class="demo-banner" hidden>Preview mode — load unpacked in Aside to control real tabs.</p>
+
+      <header class="mast">
+        <div class="brand">
+          <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+            <rect x="4" y="14" width="24" height="1.6" rx="0.8" fill="currentColor" />
+            <rect x="14.4" y="15.6" width="3.2" height="2.4" fill="currentColor" />
+            <rect x="11.2" y="18" width="9.6" height="6.4" rx="2.4" fill="currentColor" />
+          </svg>
+          <h1 id="wordmark">Still</h1>
+        </div>
+        <button id="toggle" class="switch" role="switch" aria-checked="true" aria-label="Enable Still">
+          <span class="knob"></span>
+        </button>
+      </header>
+
+      <div class="segment" role="tablist" aria-label="Views">
+        <button id="tab-still" type="button" role="tab" aria-selected="true" data-view="still">Tabs</button>
+        <button id="tab-memory" type="button" role="tab" aria-selected="false" data-view="memory">Memory</button>
+        <button id="tab-debug" type="button" role="tab" aria-selected="false" data-view="debug" hidden>Debug</button>
+      </div>
+
+      <div id="view-still">
+        <section class="now">
+          <div class="tab-row">
+            <div id="fav" class="fav" aria-hidden="true">?</div>
+            <div class="tab-meta">
+              <h2 id="title">This tab</h2>
+              <p id="host" class="host">—</p>
+            </div>
+            <span id="status" class="state">Awake</span>
+          </div>
+          <p id="why" class="why">Open a page to manage it.</p>
+          <div class="actions">
+            <button id="sleep" class="btn primary" type="button">Sleep</button>
+            <button id="keep" class="btn ghost" type="button">Keep site</button>
+          </div>
+        </section>
+
+        <section class="rest">
+          <div class="rest-row">
+            <p class="kicker">Rest after</p>
+            <p class="rest-readout">
+              <span id="idle-value">15</span>
+              <span id="idle-unit">minutes</span>
+            </p>
+          </div>
+          <input id="idle" class="range" type="range" min="0" max="9" value="3" aria-label="Idle timeout" />
+        </section>
+
+        <section class="roster">
+          <div class="roster-head">
+            <p class="kicker">All tabs</p>
+            <p id="counts" class="counts">0 open</p>
+          </div>
+          <ul id="roster" class="rows"></ul>
+          <button id="sleep-others" class="btn ghost wide" type="button">Sleep the rest</button>
+        </section>
+      </div>
+
+      <div id="view-memory" hidden>
+        <section class="rest">
+          <div class="rest-row">
+            <p class="kicker">Open tabs</p>
+            <p class="rest-readout">
+              <span id="ram-value">—</span>
+              <span id="ram-unit"></span>
+            </p>
+          </div>
+          <p id="ram-sub" class="counts">Measuring…</p>
+        </section>
+        <p id="ram-note" class="why" hidden></p>
+        <section class="roster">
+          <div class="roster-head">
+            <p class="kicker">By memory</p>
+            <button id="ram-refresh" class="btn link" type="button">Refresh</button>
+          </div>
+          <ul id="ram-list" class="rows"></ul>
+        </section>
+      </div>
+
+      <div id="view-debug" hidden>
+        <section class="roster">
+          <div class="roster-head">
+            <p class="kicker">Debug</p>
+            <p id="debug-counts" class="counts"></p>
+          </div>
+          <div id="probes" class="probes"></div>
+          <div class="actions">
+            <button id="debug-copy" class="btn primary" type="button">Copy report</button>
+            <button id="debug-clear" class="btn ghost" type="button">Clear log</button>
+          </div>
+          <p id="debug-copied" class="why" hidden>Copied.</p>
+          <ul id="debug-log" class="rows debug-log"></ul>
+        </section>
+      </div>
+
+      <footer class="foot">
+        <a id="options" href="../options/options.html">Settings</a>
+      </footer>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,45 @@
+# Still
+
+A memory saver for [Aside](https://aside.ai) and other Chromium browsers. Idle tabs go to sleep; click one and it wakes.
+
+Still uses the browser’s native **tab discard**. The tab stays in the strip. The page unloads from memory. Coming back reloads it.
+
+## Load in Aside / Chrome
+
+1. Open `aside://extensions` or `chrome://extensions`
+2. Turn on **Developer mode**
+3. **Load unpacked** → this folder (`still`)
+
+## What it does
+
+- Sleeps tabs after a timeout you set (default 15 minutes)
+- Restores a tab the moment you activate it
+- Whitelist domains, exact hosts, subdomains, paths, and URL prefixes
+- Skips pinned tabs, audible tabs, and browser pages
+- Popup: sleep now, keep this site, wake sleeping tabs
+- Memory tab: RAM per loaded tab (sleeping tabs show as unloaded)
+- Debug mode: event log, API probes, copy-a-report
+- Right-click: Sleep this tab / Never sleep this site
+- Shortcut: `Alt+Shift+S` sleeps the current tab
+
+## Debug
+
+Turn on **Debug mode** in settings, or click the **Still** wordmark in the popup five times. The Debug tab shows whether the RAM API, alarms, and menus are available, plus a rolling event log. **Copy report** dumps JSON you can paste when something breaks.
+
+## Whitelist patterns
+
+| You type | Matches |
+| --- | --- |
+| `github.com` | github.com and every subdomain |
+| `=mail.google.com` | only that host |
+| `*.notion.so` | subdomains, not notion.so itself |
+| `github.com/neel` | that path and below |
+| `https://mail.google.com/mail` | URLs with that prefix |
+
+## Develop
+
+```bash
+npm test
+```
+
+Open `popup/popup.html` or `options/options.html` in a browser for a UI preview (demo data).

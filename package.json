@@ -1,0 +1,10 @@
+{
+  "name": "still",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Sleep idle tabs to free memory in Aside, Chrome, and other Chromium browsers.",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  }
+}

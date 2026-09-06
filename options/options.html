@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Still — settings</title>
+    <link rel="stylesheet" href="../shared/theme.css" />
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="4" y="14" width="24" height="1.6" rx="0.8" fill="currentColor" />
+          <rect x="14.4" y="15.6" width="3.2" height="2.4" fill="currentColor" />
+          <rect x="11.2" y="18" width="9.6" height="6.4" rx="2.4" fill="currentColor" />
+        </svg>
+        <h1>Still</h1>
+        <p class="lede">Idle tabs rest. Click one and it wakes.</p>
+      </header>
+
+      <div class="grid">
+        <section class="panel">
+          <p class="kicker">Timer</p>
+          <div class="readout">
+            <span id="idle-value" class="num">15</span>
+            <span id="idle-unit" class="unit">minutes</span>
+          </div>
+          <label class="sr" for="idle-minutes">Idle minutes</label>
+          <input id="idle-minutes" class="field" type="number" min="1" max="1440" value="15" />
+          <p class="hint">1–1440 minutes. Background tabs older than this are discarded. Returning to a tab restores it.</p>
+
+          <div class="divider"></div>
+
+          <label class="check">
+            <input id="enabled" type="checkbox" checked />
+            <span class="copy">
+              <strong>Still is on</strong>
+              <span>Pause to leave every tab awake.</span>
+            </span>
+          </label>
+          <label class="check">
+            <input id="pinned" type="checkbox" checked />
+            <span class="copy">
+              <strong>Keep pinned tabs</strong>
+              <span>Pinned tabs stay loaded.</span>
+            </span>
+          </label>
+          <label class="check">
+            <input id="audible" type="checkbox" checked />
+            <span class="copy">
+              <strong>Keep audible tabs</strong>
+              <span>Music, calls, and videos keep playing.</span>
+            </span>
+          </label>
+          <label class="check">
+            <input id="aside-chat" type="checkbox" checked />
+            <span class="copy">
+              <strong>Keep Aside chats</strong>
+              <span>Don’t sleep a tab while its Aside chat is running. Sleeping resumes after the chat stops.</span>
+            </span>
+          </label>
+          <label class="check">
+            <input id="debug" type="checkbox" />
+            <span class="copy">
+              <strong>Debug mode</strong>
+              <span>Adds a Debug tab in the popup with API probes and an event log you can copy.</span>
+            </span>
+          </label>
+        </section>
+
+        <section class="panel">
+          <p class="kicker">Whitelist</p>
+          <h2>Never sleep these</h2>
+          <p class="hint">
+            Domain <code>github.com</code> · host <code>=mail.google.com</code> · subdomains
+            <code>*.notion.so</code> · path <code>github.com/neel</code> · URL
+            <code>https://mail.google.com/mail</code>
+          </p>
+          <form id="add-form" class="add">
+            <input
+              id="pattern"
+              class="field"
+              type="text"
+              placeholder="example.com"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button class="btn primary" type="submit">Add</button>
+          </form>
+          <p id="preview" class="preview"></p>
+          <p id="error" class="error" hidden></p>
+          <ul id="rules" class="rules"></ul>
+        </section>
+      </div>
+
+      <section class="panel note">
+        <p class="kicker">How it works</p>
+        <p>
+          Still uses the browser’s native tab discard. The tab stays in the strip; its page unloads from memory.
+          Click it — or Wake in the popup — and the browser brings it back. Chrome pages, the active tab, and
+          anything you whitelist are left alone.
+        </p>
+        <p class="muted">Alt+Shift+S sleeps the current tab. Right-click a page for Sleep / Never sleep this site.</p>
+      </section>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
