@@ -134,6 +134,38 @@ h1 {
   margin-top: 12px;
 }
 
+#keep .keep-mark {
+  display: none;
+  width: 18px;
+  height: 18px;
+}
+
+#keep.kept .keep-label {
+  display: none;
+}
+
+#keep.kept .keep-mark {
+  display: block;
+  animation: keep-in 180ms var(--ease);
+}
+
+#keep.kept,
+#keep.kept:disabled {
+  color: var(--rest);
+  opacity: 1;
+}
+
+@keyframes keep-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .rest-row {
   display: flex;
   align-items: baseline;

@@ -102,8 +102,10 @@ function renderStill() {
     $("why").textContent = currentWhy(current, settings);
     $("sleep").disabled = isInternalUrl(current.url) || sleeping || current.reason === "aside-chat";
     $("sleep").textContent = sleeping ? "Sleeping" : "Sleep";
-    $("keep").disabled = current.reason === "internal" || current.reason === "whitelist";
-    $("keep").textContent = current.reason === "whitelist" ? "Kept" : "Keep site";
+    const kept = current.reason === "whitelist";
+    $("keep").disabled = current.reason === "internal" || kept;
+    $("keep").classList.toggle("kept", kept);
+    $("keep").setAttribute("aria-label", kept ? "Site kept" : "Keep site");
   }
 
   const tabs = (state.tabs || []).filter(isWebTab);

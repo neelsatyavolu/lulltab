@@ -1,6 +1,15 @@
 import { getSettings, setSettings } from "./lib/settings.js";
 import { parsePattern, isWhitelisted } from "./lib/whitelist.js";
-import { classifyTab, isInternalUrl, hostnameOf, isAsideChatTitle, isAsideAgentGroup } from "./lib/engine.js";
+import {
+  classifyTab,
+  isInternalUrl,
+  hostnameOf,
+  isAsideChatTitle,
+  isAsideAgentGroup,
+  noteTabActivated,
+  stampActiveTabs,
+  allowsBrowserDiscard,
+} from "./lib/engine.js";
 import {
   attachProcessMemory,
   sumAwakeBytes,
@@ -11,9 +20,24 @@ import { debugLog, getDebugLog, clearDebugLog, buildDebugReport } from "./lib/de
 
 const ALARM = "still.scan";
 const ACCESS_KEY = "still.access";
+const ACTIVE_KEY = "still.active";
+const CLOCK_KEY = "still.clock";
+const CLOCK_VERSION = 2;
 const memoryAccess = {};
+const memoryActive = {};
+let memoryClock = 0;
 
 let initLock = Promise.resolve();
+let writeLock = Promise.resolve();
+
+function locked(fn) {
+  const run = writeLock.then(fn, fn);
+  writeLock = run.then(
+    () => {},
+    () => {}
+  );
+  return run;
+}
 
 chrome.runtime.onInstalled.addListener(() => queueInit("install"));
 chrome.runtime.onStartup.addListener(() => queueInit("startup"));
@@ -26,11 +50,14 @@ function queueInit(reason) {
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === ALARM) scan().catch(console.warn);
+  if (alarm.name === ALARM) initLock.then(() => scan()).catch(console.warn);
 });
 
-chrome.tabs.onActivated.addListener(({ tabId }) => {
-  touch(tabId).then(() => scan()).catch(console.warn);
+chrome.tabs.onActivated.addListener(({ tabId, windowId }) => {
+  initLock
+    .then(() => noteActivation(tabId, windowId))
+    .then(() => scan())
+    .catch(console.warn);
 });
 
 chrome.tabs.onCreated.addListener((tab) => {
@@ -51,8 +78,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes["still.settings"]) {
-    scan().catch(console.warn);
-    protectWhitelisted().catch(console.warn);
+    initLock
+      .then(() => scan())
+      .then(() => protectWhitelisted())
+      .catch(console.warn);
   }
 });
 
@@ -79,7 +108,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 async function init(reason) {
   await debugLog("init", { reason });
-  if (reason === "startup") await setAccess({});
+  if (reason === "startup") {
+    await setAccess({});
+    await setActiveMap({});
+  }
+  await migrateClock();
   await chrome.alarms.create(ALARM, { periodInMinutes: 1 });
   await seedAccess();
   if (reason === "install") await setupMenus();
@@ -433,13 +466,18 @@ async function getDebugState() {
 
 async function scan() {
   const settings = await getSettings();
+  const now = Date.now();
+  const tabs = await chrome.tabs.query({});
+  await protectWhitelisted(tabs, settings);
   if (!settings.enabled) {
     await updateBadge();
     return;
   }
-  const access = await getAccess();
-  const now = Date.now();
-  const tabs = await chrome.tabs.query({});
+  const access = await locked(async () => {
+    const stamped = stampActiveTabs(await getAccess(), tabs, now);
+    if (stamped.changed) await setAccess(stamped.access);
+    return stamped.access;
+  });
   const asideBusy = await getAsideBusyTabIds(tabs);
   let slept = 0;
   let failed = 0;
@@ -575,31 +613,102 @@ async function whitelistTab(tab) {
   await addWhitelist("", tab.url);
 }
 
-async function seedAccess() {
-  const access = await getAccess();
+async function migrateClock() {
+  try {
+    const stored = await chrome.storage.session.get(CLOCK_KEY);
+    if (stored[CLOCK_KEY] === CLOCK_VERSION) return;
+  } catch {
+    if (memoryClock === CLOCK_VERSION) return;
+  }
+  // Older builds stored "last focused", so a tab you were reading past the
+  // idle window was discarded the instant you left. Start this session clean.
   const tabs = await chrome.tabs.query({});
   const now = Date.now();
-  let changed = false;
+  const access = {};
+  const active = {};
   for (const tab of tabs) {
-    if (tab.id != null && access[tab.id] == null) {
-      access[tab.id] = now;
-      changed = true;
-    }
+    if (tab.id == null) continue;
+    access[tab.id] = now;
+    if (tab.active && tab.windowId != null) active[String(tab.windowId)] = tab.id;
   }
-  if (changed) await setAccess(access);
+  await setAccess(access);
+  await setActiveMap(active);
+  memoryClock = CLOCK_VERSION;
+  try {
+    await chrome.storage.session.set({ [CLOCK_KEY]: CLOCK_VERSION });
+  } catch {
+    /* in-memory only */
+  }
+  await debugLog("clock-reset", { tabs: tabs.length });
+}
+
+async function noteActivation(tabId, windowId) {
+  await locked(async () => {
+    const noted = noteTabActivated(await getAccess(), await getActiveMap(), {
+      tabId,
+      windowId,
+      now: Date.now(),
+    });
+    await setAccess(noted.access);
+    await setActiveMap(noted.activeByWindow);
+  });
+}
+
+async function seedAccess() {
+  await locked(async () => {
+    const access = await getAccess();
+    const active = await getActiveMap();
+    const tabs = await chrome.tabs.query({});
+    const now = Date.now();
+    let changed = false;
+    for (const tab of tabs) {
+      if (tab.id != null && access[tab.id] == null) {
+        access[tab.id] = now;
+        changed = true;
+      }
+      if (tab.active && tab.id != null && tab.windowId != null) {
+        const key = String(tab.windowId);
+        if (Number(active[key]) !== tab.id) {
+          active[key] = tab.id;
+          changed = true;
+        }
+      }
+    }
+    const stamped = stampActiveTabs(access, tabs, now);
+    if (stamped.changed || changed) {
+      await setAccess(stamped.access);
+      await setActiveMap(active);
+    }
+  });
 }
 
 async function touch(tabId) {
-  const access = await getAccess();
-  access[tabId] = Date.now();
-  await setAccess(access);
+  await locked(async () => {
+    const access = await getAccess();
+    access[tabId] = Date.now();
+    await setAccess(access);
+  });
 }
 
 async function forget(tabId) {
-  const access = await getAccess();
-  if (access[tabId] == null) return;
-  delete access[tabId];
-  await setAccess(access);
+  await locked(async () => {
+    const access = await getAccess();
+    const active = await getActiveMap();
+    let changed = false;
+    if (access[tabId] != null) {
+      delete access[tabId];
+      changed = true;
+    }
+    for (const key of Object.keys(active)) {
+      if (Number(active[key]) === Number(tabId)) {
+        delete active[key];
+        changed = true;
+      }
+    }
+    if (!changed) return;
+    await setAccess(access);
+    await setActiveMap(active);
+  });
 }
 
 async function getAccess() {
@@ -624,9 +733,31 @@ async function setAccess(access) {
   }
 }
 
-async function protectWhitelisted() {
-  const settings = await getSettings();
-  const tabs = await chrome.tabs.query({});
+async function getActiveMap() {
+  try {
+    const stored = await chrome.storage.session.get(ACTIVE_KEY);
+    if (stored[ACTIVE_KEY] && typeof stored[ACTIVE_KEY] === "object") {
+      return { ...stored[ACTIVE_KEY] };
+    }
+  } catch {
+    /* Aside / older Chromium without session storage */
+  }
+  return { ...memoryActive };
+}
+
+async function setActiveMap(active) {
+  Object.keys(memoryActive).forEach((key) => delete memoryActive[key]);
+  Object.assign(memoryActive, active);
+  try {
+    await chrome.storage.session.set({ [ACTIVE_KEY]: active });
+  } catch {
+    /* in-memory only */
+  }
+}
+
+async function protectWhitelisted(tabsArg, settingsArg) {
+  const settings = settingsArg || (await getSettings());
+  const tabs = tabsArg || (await chrome.tabs.query({}));
   for (const tab of tabs) {
     await applyAutoDiscardable(tab, settings);
   }
@@ -635,12 +766,10 @@ async function protectWhitelisted() {
 async function applyAutoDiscardable(tab, settingsArg) {
   if (tab?.id == null || isInternalUrl(tab.url)) return;
   const settings = settingsArg || (await getSettings());
-  const protectedTab =
-    isWhitelisted(tab.url, settings.whitelist) ||
-    (settings.keepPinned && tab.pinned) ||
-    (settings.keepAudible && tab.audible);
+  const autoDiscardable = allowsBrowserDiscard(tab, settings);
+  if (tab.autoDiscardable === autoDiscardable) return;
   try {
-    await chrome.tabs.update(tab.id, { autoDiscardable: !protectedTab });
+    await chrome.tabs.update(tab.id, { autoDiscardable });
   } catch {
     /* some pages reject this */
   }

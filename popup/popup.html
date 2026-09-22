@@ -44,7 +44,12 @@
           <p id="why" class="why">Open a page to manage it.</p>
           <div class="actions">
             <button id="sleep" class="btn primary" type="button">Sleep</button>
-            <button id="keep" class="btn ghost" type="button">Keep site</button>
+            <button id="keep" class="btn ghost" type="button" aria-label="Keep site">
+              <span class="keep-label">Keep site</span>
+              <svg class="keep-mark" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M3.5 8.2 6.4 11.2 12.5 4.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
           </div>
         </section>
 

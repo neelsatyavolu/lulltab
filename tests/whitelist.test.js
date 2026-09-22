@@ -1,7 +1,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parsePattern, matchesRule, isWhitelisted, describeRule } from "../lib/whitelist.js";
-import { classifyTab, formatDuration, formatIdleMinutes, isInternalUrl, isAsideChatTitle, isAsideAgentGroup } from "../lib/engine.js";
+import {
+  classifyTab,
+  formatDuration,
+  formatIdleMinutes,
+  isInternalUrl,
+  isAsideChatTitle,
+  isAsideAgentGroup,
+  noteTabActivated,
+  stampActiveTabs,
+  allowsBrowserDiscard,
+} from "../lib/engine.js";
 import { mergeSettings, clampIdleMinutes } from "../lib/settings.js";
 
 test("parses domain, host, wildcard, url prefix, and path prefix", () => {
@@ -166,6 +176,45 @@ test("classifyTab sleeps only after the idle window", () => {
   );
   assert.equal(idle.sleep, true);
   assert.equal(idle.reason, "idle");
+});
+
+test("leaving a tab starts idle at leave time, not arrival", () => {
+  const arrived = 1_000_000;
+  const left = arrived + 30 * 60 * 1000;
+  const settings = mergeSettings({ idleMinutes: 5 });
+  const stamped = stampActiveTabs({ 7: arrived }, [{ id: 7, active: true }], left);
+  assert.equal(stamped.access[7], left);
+
+  const noted = noteTabActivated(stamped.access, { 1: 7 }, { tabId: 8, windowId: 1, now: left });
+  assert.equal(noted.access[7], left);
+  assert.equal(noted.access[8], left);
+  assert.equal(noted.activeByWindow["1"], 8);
+
+  const justLeft = classifyTab(
+    { id: 7, active: false, url: "https://idle.test/", discarded: false },
+    { now: left + 30 * 1000, lastAccess: noted.access, settings }
+  );
+  assert.equal(justLeft.sleep, false);
+  assert.equal(justLeft.reason, "fresh");
+
+  const overdue = classifyTab(
+    { id: 7, active: false, url: "https://idle.test/", discarded: false },
+    { now: left + 6 * 60 * 1000, lastAccess: noted.access, settings }
+  );
+  assert.equal(overdue.sleep, true);
+});
+
+test("browser memory saver cannot discard while Still is enabled", () => {
+  const tab = { url: "https://idle.test/", pinned: false, audible: false };
+  assert.equal(allowsBrowserDiscard(tab, mergeSettings({ enabled: true, idleMinutes: 5 })), false);
+  assert.equal(allowsBrowserDiscard(tab, mergeSettings({ enabled: false })), true);
+  assert.equal(
+    allowsBrowserDiscard(
+      { url: "https://keep.me/", pinned: false },
+      mergeSettings({ enabled: false, whitelist: [{ kind: "domain", pattern: "keep.me" }] })
+    ),
+    false
+  );
 });
 
 test("missing lastAccess is treated as just seen", () => {
