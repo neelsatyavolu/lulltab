@@ -204,7 +204,7 @@ test("leaving a tab starts idle at leave time, not arrival", () => {
   assert.equal(overdue.sleep, true);
 });
 
-test("browser memory saver cannot discard while Still is enabled", () => {
+test("browser memory saver cannot discard while Lulltab is enabled", () => {
   const tab = { url: "https://idle.test/", pinned: false, audible: false };
   assert.equal(allowsBrowserDiscard(tab, mergeSettings({ enabled: true, idleMinutes: 5 })), false);
   assert.equal(allowsBrowserDiscard(tab, mergeSettings({ enabled: false })), true);

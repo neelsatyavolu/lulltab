@@ -1,14 +1,22 @@
-# Still
+# Lulltab
 
-A memory saver for [Aside](https://aside.ai) and other Chromium browsers. Idle tabs go to sleep; click one and it wakes.
+A memory saver for [Aside](https://aside.ai), Chrome, and other Chromium browsers. Idle tabs go to sleep; click one and it wakes.
 
-Still uses the browser’s native **tab discard**. The tab stays in the strip. The page unloads from memory. Coming back reloads it.
+**Website:** https://lulltab.vercel.app ·
+**Download:** [lulltab.zip](https://github.com/neelsatyavolu/lulltab/releases/latest/download/lulltab.zip) ·
+**License:** [MIT](LICENSE)
 
-## Load in Aside / Chrome
+Lulltab uses the browser’s native **tab discard**. The tab stays in the strip. The page unloads from memory. Coming back reloads it.
 
-1. Open `aside://extensions` or `chrome://extensions`
-2. Turn on **Developer mode**
-3. **Load unpacked** → this folder (`still`)
+## Install from a release
+
+1. Download [`lulltab.zip`](https://github.com/neelsatyavolu/lulltab/releases/latest/download/lulltab.zip) and unzip it.
+2. Open `chrome://extensions` (or `aside://extensions`) and turn on **Developer mode**.
+3. **Load unpacked** → the unzipped `lulltab` folder.
+
+## Load from source
+
+There’s no build step. Clone the repo and **Load unpacked** → the repo folder.
 
 ## What it does
 
@@ -24,7 +32,7 @@ Still uses the browser’s native **tab discard**. The tab stays in the strip. T
 
 ## Debug
 
-Turn on **Debug mode** in settings, or click the **Still** wordmark in the popup five times. The Debug tab shows whether the RAM API, alarms, and menus are available, plus a rolling event log. **Copy report** dumps JSON you can paste when something breaks.
+Turn on **Debug mode** in settings, or click the **Lulltab** wordmark in the popup five times. The Debug tab shows whether the RAM API, alarms, and menus are available, plus a rolling event log. **Copy report** dumps JSON you can paste when something breaks.
 
 ## Whitelist patterns
 
@@ -43,3 +51,9 @@ npm test
 ```
 
 Open `popup/popup.html` or `options/options.html` in a browser for a UI preview (demo data).
+
+`site/` is the static landing page, deployed on Vercel (project root: `site`).
+
+## License
+
+[MIT](LICENSE). Found a security issue? See [SECURITY.md](SECURITY.md).

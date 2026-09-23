@@ -3,19 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Still — settings</title>
+    <title>Lulltab — settings</title>
     <link rel="stylesheet" href="../shared/theme.css" />
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
     <main class="page">
       <header class="hero">
-        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
-          <rect x="4" y="14" width="24" height="1.6" rx="0.8" fill="currentColor" />
-          <rect x="14.4" y="15.6" width="3.2" height="2.4" fill="currentColor" />
-          <rect x="11.2" y="18" width="9.6" height="6.4" rx="2.4" fill="currentColor" />
+        <svg class="mark" viewBox="0 0 128 128" aria-hidden="true">
+          <path d="M6 104C16 104 21 99 21 90V48C21 37 28 30 39 30H89C100 30 107 37 107 48V90C107 99 112 104 122 104Z" fill="currentColor" />
+          <path d="M40 60Q64 84 88 60" fill="none" style="stroke: var(--bg)" stroke-width="10" stroke-linecap="round" />
         </svg>
-        <h1>Still</h1>
+        <h1>Lulltab</h1>
         <p class="lede">Idle tabs rest. Click one and it wakes.</p>
       </header>
 
@@ -35,7 +34,7 @@
           <label class="check">
             <input id="enabled" type="checkbox" checked />
             <span class="copy">
-              <strong>Still is on</strong>
+              <strong>Lulltab is on</strong>
               <span>Pause to leave every tab awake.</span>
             </span>
           </label>
@@ -97,7 +96,7 @@
       <section class="panel note">
         <p class="kicker">How it works</p>
         <p>
-          Still uses the browser’s native tab discard. The tab stays in the strip; its page unloads from memory.
+          Lulltab uses the browser’s native tab discard. The tab stays in the strip; its page unloads from memory.
           Click it — or Wake in the popup — and the browser brings it back. Chrome pages, the active tab, and
           anything you whitelist are left alone.
         </p>

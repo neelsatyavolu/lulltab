@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lulltab — let idle tabs sleep</title>
+  <meta name="description" content="A free, open-source Chromium extension that unloads tabs you haven’t used in a while. They stay in your tab strip and wake the moment you click them.">
+  <meta name="theme-color" content="#171917">
+  <meta property="og:title" content="Lulltab — let idle tabs sleep">
+  <meta property="og:description" content="Free, open-source extension that unloads idle tabs to free memory. Click one and it wakes.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/assets/icon128.png">
+  <link rel="icon" type="image/svg+xml" href="/assets/icon.svg">
+  <link rel="icon" type="image/png" href="/assets/icon32.png">
+  <link rel="preload" href="/fonts/fraunces-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/demo.js" defer></script>
+</head>
+<body>
+  <header class="nav wrap">
+    <a class="brand" href="/" aria-label="Lulltab home">
+      <img src="/assets/icon.svg" alt="" width="28" height="28">
+      <span>Lulltab</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#install">Install</a>
+      <a class="btn btn-ghost btn-sm" href="https://github.com/neelsatyavolu/lulltab">
+        <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero wrap">
+      <h1>Forty tabs open.<br>Four in use.</h1>
+      <p class="lede">Lulltab unloads the rest. They stay in your tab strip, give their memory back, and reload the moment you click them.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://github.com/neelsatyavolu/lulltab/releases/latest/download/lulltab.zip">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Download for Chrome
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/neelsatyavolu/lulltab">View source on GitHub</a>
+      </div>
+      <ul class="meta">
+        <li>MIT licensed</li>
+        <li>No account</li>
+        <li>No network requests</li>
+      </ul>
+
+      <figure class="browser" aria-labelledby="demo-caption">
+        <div class="strip" id="strip" role="group" aria-label="Demo tab strip">
+          <!-- Rendered by demo.js; this is the no-script fallback. -->
+          <button class="tab pinned" type="button" disabled><span class="fav">C</span></button>
+          <button class="tab" type="button" disabled><span class="fav">G</span><span class="t">Inbox (3)</span></button>
+          <button class="tab active" type="button" disabled><span class="fav">F</span><span class="t">Onboarding flow</span></button>
+          <button class="tab asleep" type="button" disabled><span class="fav"></span><span class="t">tabs.discard()</span></button>
+          <button class="tab asleep" type="button" disabled><span class="fav"></span><span class="t">Fix idle clock #42</span></button>
+        </div>
+        <div class="viewport">
+          <div class="readout">
+            <p class="now" id="now"><b>Onboarding flow</b> is open.</p>
+            <p class="next" id="next">Idle tabs sleep after 15 minutes.</p>
+          </div>
+          <div class="gauge">
+            <p class="gauge-label">Memory held by tabs</p>
+            <p class="gauge-value"><span id="mem">2.1</span> GB</p>
+            <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+          </div>
+        </div>
+        <figcaption id="demo-caption">A pretend tab strip. Time runs 90 times faster here. Click a sleeping tab to wake it.</figcaption>
+        <p class="sr" id="live" aria-live="polite"></p>
+      </figure>
+    </section>
+
+    <section id="how" class="section wrap">
+      <h2>How a tab falls asleep</h2>
+      <ol class="timeline">
+        <li>
+          <h3>You leave it</h3>
+          <p>The idle clock starts when you switch away from a tab — not when the page last changed.</p>
+        </li>
+        <li>
+          <h3>Your timer runs out</h3>
+          <p>After 15 minutes, or whatever you pick from 1 minute to 8 hours, Lulltab asks the browser to discard the tab. The page unloads. The tab, its title, and its icon stay put.</p>
+        </li>
+        <li>
+          <h3>You click it</h3>
+          <p>The browser reloads the page from its address, and the idle clock starts over.</p>
+        </li>
+      </ol>
+      <p class="aside-note">While Lulltab is on, Chrome’s built-in Memory Saver can’t discard tabs on its own schedule. Only your timer decides.</p>
+    </section>
+
+    <section class="section wrap split">
+      <div>
+        <h2>What never sleeps</h2>
+        <ul class="plain">
+          <li>The tab you’re looking at</li>
+          <li>Pinned tabs</li>
+          <li>Tabs playing audio</li>
+          <li>Browser pages like <code>chrome://</code> and <code>aside://</code></li>
+          <li>Tabs an Aside agent is working in</li>
+          <li>Sites you keep</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="table-title">Keeping sites</h3>
+        <table class="patterns">
+          <thead><tr><th scope="col">You type</th><th scope="col">Lulltab keeps</th></tr></thead>
+          <tbody>
+            <tr><td><code>github.com</code></td><td>github.com and every subdomain</td></tr>
+            <tr><td><code>=mail.google.com</code></td><td>Only that exact host</td></tr>
+            <tr><td><code>*.notion.so</code></td><td>Subdomains, not notion.so itself</td></tr>
+            <tr><td><code>github.com/neel</code></td><td>That path and everything below it</td></tr>
+            <tr><td><code>https://mail.google.com/mail</code></td><td>Any URL that starts with it</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section wrap popup-section">
+      <img class="shot" src="/assets/popup.png" alt="The Lulltab popup: the current tab with Sleep and Keep site buttons, a Rest after slider set to 15 minutes, and a list of open and sleeping tabs." width="360" height="659" loading="lazy">
+      <div>
+        <h2>One click from the toolbar</h2>
+        <dl class="controls">
+          <dt>Sleep</dt><dd>Unload the current tab now.</dd>
+          <dt>Keep site</dt><dd>Never sleep this site again.</dd>
+          <dt>Rest after</dt><dd>Set the idle timeout.</dd>
+          <dt>Sleep the rest</dt><dd>Unload every tab except this one.</dd>
+          <dt>Memory</dt><dd>See how much RAM each open tab is using, largest first.</dd>
+          <dt><kbd>Alt</kbd> <kbd>Shift</kbd> <kbd>S</kbd></dt><dd>Sleep the current tab from the keyboard. Right-click any page for the same options.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section id="privacy" class="section wrap">
+      <h2>Nothing leaves your browser</h2>
+      <p class="lede narrow">Lulltab makes no network requests. There’s no server, no analytics, and no account. Settings stay in <code>chrome.storage.local</code>. Here is what each permission is for.</p>
+      <table class="perms">
+        <tbody>
+          <tr><th scope="row"><code>tabs</code></th><td>See your tabs and discard idle ones.</td></tr>
+          <tr><th scope="row"><code>alarms</code></th><td>Check the idle timer once a minute.</td></tr>
+          <tr><th scope="row"><code>storage</code></th><td>Save your timeout and kept sites on this device.</td></tr>
+          <tr><th scope="row"><code>contextMenus</code></th><td>Add Sleep this tab and Never sleep this site to the right-click menu.</td></tr>
+          <tr><th scope="row"><code>tabGroups</code></th><td>Leave tabs in an Aside agent’s group alone.</td></tr>
+          <tr><th scope="row"><code>processes</code>, <code>system.memory</code></th><td>Measure memory per tab for the Memory view.</td></tr>
+          <tr><th scope="row"><code>scripting</code>, all sites</th><td>Read a page’s memory use when the browser doesn’t report it per process. Nothing else is read.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="install" class="section wrap">
+      <h2>Install in a minute</h2>
+      <p class="lede narrow">Lulltab isn’t on the Chrome Web Store yet, so you load it yourself. It works in Chrome, Aside, Brave, Edge, and other Chromium browsers from version 116.</p>
+      <ol class="install">
+        <li><a href="https://github.com/neelsatyavolu/lulltab/releases/latest/download/lulltab.zip">Download <code>lulltab.zip</code></a> and unzip it.</li>
+        <li>Open <code>chrome://extensions</code> (or <code>aside://extensions</code>) and turn on <b>Developer mode</b>.</li>
+        <li>Click <b>Load unpacked</b> and pick the unzipped <code>lulltab</code> folder.</li>
+        <li>Pin Lulltab to the toolbar. Tabs start sleeping after 15 minutes.</li>
+      </ol>
+      <p class="note">Prefer the source? <code>git clone https://github.com/neelsatyavolu/lulltab</code> and load the folder as-is. There’s no build step.</p>
+    </section>
+  </main>
+
+  <footer class="footer wrap">
+    <span><img src="/assets/icon.svg" alt="" width="18" height="18"> Lulltab</span>
+    <span><a href="https://github.com/neelsatyavolu/lulltab/blob/main/LICENSE">MIT License</a></span>
+    <span><a href="https://github.com/neelsatyavolu/lulltab">GitHub</a></span>
+    <span><a href="https://github.com/neelsatyavolu/lulltab/issues">Report a problem</a></span>
+  </footer>
+</body>
+</html>

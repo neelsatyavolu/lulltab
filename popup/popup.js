@@ -446,8 +446,8 @@ function demoState() {
     },
     currentTab: {
       id: 1,
-      title: "Still — memory saver",
-      url: "https://github.com/neel/still",
+      title: "Lulltab — memory saver",
+      url: "https://github.com/neelsatyavolu/lulltab",
       discarded: false,
       active: true,
       reason: "active",
@@ -457,8 +457,8 @@ function demoState() {
     tabs: [
       {
         id: 1,
-        title: "Still — memory saver",
-        url: "https://github.com/neel/still",
+        title: "Lulltab — memory saver",
+        url: "https://github.com/neelsatyavolu/lulltab",
         discarded: false,
         active: true,
       },
@@ -491,8 +491,8 @@ function demoMemory() {
   const rows = [
     {
       id: 1,
-      title: "Still — memory saver",
-      url: "https://github.com/neel/still",
+      title: "Lulltab — memory saver",
+      url: "https://github.com/neelsatyavolu/lulltab",
       discarded: false,
       bytes: 86 * 1024 * 1024,
       sharedWith: 1,
@@ -560,7 +560,7 @@ function demoDebug() {
     probes,
     counts,
     log,
-    report: JSON.stringify({ still: "1.1.0", probes, counts, log }, null, 2),
+    report: JSON.stringify({ lulltab: "1.1.0", probes, counts, log }, null, 2),
   };
 }
 
