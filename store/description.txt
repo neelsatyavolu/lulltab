@@ -1,0 +1,35 @@
+Lulltab puts tabs you haven’t used in a while to sleep, so they stop holding memory. Sleeping tabs stay in your tab strip with their title and icon. Click one and it reloads.
+
+HOW IT WORKS
+• The idle clock starts when you switch away from a tab.
+• After your timeout (15 minutes by default, anywhere from 1 minute to 24 hours), Lulltab asks the browser to discard the tab. This is Chrome’s own tab discard: the page unloads, the tab stays.
+• Click the tab and the browser reloads the page.
+• While Lulltab is on, Chrome’s built-in Memory Saver can’t discard tabs on its own schedule. Only your timer decides.
+
+WHAT NEVER SLEEPS
+• The tab you’re looking at
+• Pinned tabs
+• Tabs playing audio
+• Browser pages like chrome://
+• Tabs an Aside agent is working in
+• Sites you keep
+
+KEEPING SITES
+• github.com keeps github.com and every subdomain
+• =mail.google.com keeps only that exact host
+• *.notion.so keeps subdomains, not notion.so itself
+• github.com/neel keeps that path and everything below it
+• https://mail.google.com/mail keeps any URL that starts with it
+
+FROM THE TOOLBAR
+• Sleep: unload the current tab now
+• Keep site: never sleep this site again
+• Rest after: set the idle timeout
+• Sleep the rest: unload every tab except this one
+• Memory: see how much RAM each open tab is using, largest first
+• Alt+Shift+S sleeps the current tab. Right-click any page for the same options.
+
+PRIVATE
+Lulltab makes no network requests. There’s no server, no analytics, and no account. Your settings stay on your device.
+
+Free and open source under the MIT license: https://github.com/neelsatyavolu/lulltab

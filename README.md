@@ -53,6 +53,8 @@ npm test
 Open `popup/popup.html` or `options/options.html` in a browser for a UI preview (demo data).
 
 `site/` is the static landing page, deployed on Vercel (project root: `site`).
+`store/` holds the Chrome Web Store listing: description, permission justifications, screenshots, and promo tiles.
+Web Store item ID: `koilonckhflgomjkphaoehnheeplagfj`.
 
 ## License
 

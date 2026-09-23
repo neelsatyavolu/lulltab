@@ -1,0 +1,13 @@
+{
+  "Single purpose description": "Lulltab frees browser memory by putting idle tabs to sleep with Chrome's native tab discard after a timeout the user sets, and letting them reload when the user comes back. Everything in the extension (the idle timer, the keep-awake site list, the popup, and the Memory view) serves that one purpose.",
+  "tabs justification": "Lulltab reads each tab's URL, title, and pinned/audible/active state to decide whether it may sleep, then calls chrome.tabs.discard() on tabs that have been idle longer than the user's timeout. It sets autoDiscardable so Chrome's own Memory Saver doesn't discard tabs outside the user's timer, and lists tabs in the popup so the user can sleep or wake them.",
+  "tabGroups justification": "Used only to read tab group titles so Lulltab can skip tabs in a group that the Aside browser's AI agent is currently working in. Sleeping those tabs would interrupt the agent's task.",
+  "storage justification": "Saves the user's settings (idle timeout, keep-awake site list, toggles) in chrome.storage.local, and the time each tab was last used in chrome.storage.session so the idle timer survives service-worker restarts. Nothing is synced or sent anywhere.",
+  "alarms justification": "A once-a-minute alarm wakes the service worker to check which background tabs have passed the user's idle timeout and should be put to sleep.",
+  "contextMenus justification": "Adds 'Sleep this tab', 'Never sleep this site', and 'Sleep all other tabs' to the right-click menu on pages and on the toolbar icon.",
+  "processes justification": "Where the browser provides it (Chrome Dev channel and Chromium browsers such as Aside), chrome.processes reports the memory used by each tab's renderer process for the popup's Memory view, so users can see which tabs are worth sleeping. Where the API isn't available, Lulltab skips it.",
+  "system.memory justification": "Reads total and available system memory to show how much RAM is free in the popup's Memory view.",
+  "scripting justification": "When per-process memory isn't available, Lulltab runs a one-line function in open http/https tabs that returns performance.memory.usedJSHeapSize, to estimate each tab's memory for the Memory view. It reads no page content and injects nothing else.",
+  "Host permission justification": "Needed only so chrome.scripting.executeScript can read the JavaScript heap size (performance.memory.usedJSHeapSize) of open http/https tabs for the Memory view. Tabs can be on any site, so the pattern covers all http and https URLs. No page content is read or changed, and nothing leaves the device.",
+  "Privacy policy URL": "https://lulltab.vercel.app/privacy"
+}
