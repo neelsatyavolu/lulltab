@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy policy — Lulltab</title>
+  <meta name="description" content="Lulltab collects no data. It makes no network requests and keeps your settings on your device.">
+  <meta name="theme-color" content="#171917">
+  <link rel="icon" type="image/svg+xml" href="/assets/icon.svg">
+  <link rel="icon" type="image/png" href="/assets/icon32.png">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="nav wrap">
+    <a class="brand" href="/" aria-label="Lulltab home">
+      <img src="/assets/icon.svg" alt="" width="28" height="28">
+      <span>Lulltab</span>
+    </a>
+  </header>
+
+  <main class="wrap policy">
+    <h1>Privacy policy</h1>
+    <p class="updated">Last updated September 23, 2026</p>
+
+    <h2>The short version</h2>
+    <p>Lulltab doesn’t collect, sell, or share any data. It makes no network requests, and there is no Lulltab server.</p>
+
+    <h2>What stays on your device</h2>
+    <ul>
+      <li>Your settings — the idle timeout, the sites you keep awake, and switches like “Keep pinned tabs” — are saved in <code>chrome.storage.local</code>.</li>
+      <li>When each tab was last used is kept in <code>chrome.storage.session</code>, which the browser clears when it closes.</li>
+      <li>If you turn on Debug mode, a short event log is saved in <code>chrome.storage.local</code>. It only leaves your device if you click <b>Copy report</b> and paste it somewhere yourself.</li>
+    </ul>
+
+    <h2>What Lulltab reads</h2>
+    <ul>
+      <li>Tab titles, addresses, and states (pinned, playing audio, sleeping), so it can decide which tabs to sleep and show them in the popup.</li>
+      <li>How much memory each tab uses, for the Memory view. When the browser doesn’t report memory per process, Lulltab reads the page’s JavaScript memory size. It doesn’t read page content.</li>
+    </ul>
+    <p>None of this is sent anywhere.</p>
+
+    <h2>Changes</h2>
+    <p>If this policy changes, the new version will be posted on this page with a new date. The source code is public on <a href="https://github.com/neelsatyavolu/lulltab">GitHub</a>, so you can check what the extension does.</p>
+
+    <h2>Contact</h2>
+    <p>Questions? <a href="https://github.com/neelsatyavolu/lulltab/issues">Open an issue on GitHub</a>.</p>
+  </main>
+
+  <footer class="footer wrap">
+    <span><img src="/assets/icon.svg" alt="" width="18" height="18"> Lulltab</span>
+    <span><a href="/privacy">Privacy</a></span>
+    <span><a href="https://github.com/neelsatyavolu/lulltab/blob/main/LICENSE">MIT License</a></span>
+    <span><a href="https://github.com/neelsatyavolu/lulltab">GitHub</a></span>
+  </footer>
+</body>
+</html>
