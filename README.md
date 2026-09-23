@@ -2,7 +2,7 @@
 
 A memory saver for [Aside](https://aside.ai), Chrome, and other Chromium browsers. Idle tabs go to sleep; click one and it wakes.
 
-**Website:** https://lulltab.vercel.app ·
+**Website:** https://lulltab.n3el.dev ·
 **Download:** [lulltab.zip](https://github.com/neelsatyavolu/lulltab/releases/latest/download/lulltab.zip) ·
 **License:** [MIT](LICENSE)
 

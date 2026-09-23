@@ -9,5 +9,5 @@
   "system.memory justification": "Reads total and available system memory to show how much RAM is free in the popup's Memory view.",
   "scripting justification": "When per-process memory isn't available, Lulltab runs a one-line function in open http/https tabs that returns performance.memory.usedJSHeapSize, to estimate each tab's memory for the Memory view. It reads no page content and injects nothing else.",
   "Host permission justification": "Needed only so chrome.scripting.executeScript can read the JavaScript heap size (performance.memory.usedJSHeapSize) of open http/https tabs for the Memory view. Tabs can be on any site, so the pattern covers all http and https URLs. No page content is read or changed, and nothing leaves the device.",
-  "Privacy policy URL": "https://lulltab.vercel.app/privacy"
+  "Privacy policy URL": "https://lulltab.n3el.dev/privacy"
 }

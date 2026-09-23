@@ -6,7 +6,7 @@
   "description": "Sleep idle tabs to free memory in Aside, Chrome, and other Chromium browsers.",
   "license": "MIT",
   "repository": "github:neelsatyavolu/lulltab",
-  "homepage": "https://lulltab.vercel.app",
+  "homepage": "https://lulltab.n3el.dev",
   "scripts": {
     "test": "node --test tests/*.test.js"
   }
