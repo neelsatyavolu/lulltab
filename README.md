@@ -30,6 +30,10 @@ There’s no build step. Clone the repo and **Load unpacked** → the repo folde
 - Right-click: Sleep this tab / Never sleep this site
 - Shortcut: `Alt+Shift+S` sleeps the current tab
 
+## Privacy
+
+Your tabs never leave your browser. The only network request is an optional daily ping to [analytics.n3el.dev](https://analytics.n3el.dev), run by the developer, with a random install ID, the Lulltab and Chrome versions, and CPU type. No cookies, no stored IP addresses, nothing about your tabs. Turn it off in settings (**Share anonymous usage stats**), which also stops the uninstall count. The website uses the same service’s cookieless page counter. Full policy: https://lulltab.n3el.dev/privacy
+
 ## Debug
 
 Turn on **Debug mode** in settings, or click the **Lulltab** wordmark in the popup five times. The Debug tab shows whether the RAM API, alarms, and menus are available, plus a rolling event log. **Copy report** dumps JSON you can paste when something breaks.

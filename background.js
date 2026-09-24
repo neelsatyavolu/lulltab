@@ -17,6 +17,7 @@ import {
   summarizeProcesses,
 } from "./lib/memory.js";
 import { debugLog, getDebugLog, clearDebugLog, buildDebugReport } from "./lib/debug.js";
+import { maybeSendPing, syncUninstallUrl } from "./lib/usage-ping.js";
 
 const ALARM = "still.scan";
 const ACCESS_KEY = "still.access";
@@ -50,7 +51,10 @@ function queueInit(reason) {
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === ALARM) initLock.then(() => scan()).catch(console.warn);
+  if (alarm.name === ALARM) {
+    initLock.then(() => scan()).catch(console.warn);
+    getSettings().then((settings) => maybeSendPing(settings.usageStats)).catch(console.warn);
+  }
 });
 
 chrome.tabs.onActivated.addListener(({ tabId, windowId }) => {
@@ -78,6 +82,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes["still.settings"]) {
+    syncUsagePing().catch(console.warn);
     initLock
       .then(() => scan())
       .then(() => protectWhitelisted())
@@ -114,10 +119,17 @@ async function init(reason) {
   }
   await migrateClock();
   await chrome.alarms.create(ALARM, { periodInMinutes: 1 });
+  syncUsagePing().catch(console.warn);
   await seedAccess();
   if (reason === "install") await setupMenus();
   await protectWhitelisted();
   await scan();
+}
+
+async function syncUsagePing() {
+  const { usageStats } = await getSettings();
+  await syncUninstallUrl(usageStats);
+  await maybeSendPing(usageStats);
 }
 
 async function setupMenus() {

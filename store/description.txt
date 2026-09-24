@@ -30,6 +30,6 @@ FROM THE TOOLBAR
 • Alt+Shift+S sleeps the current tab. Right-click any page for the same options.
 
 PRIVATE
-Lulltab makes no network requests. There’s no server, no analytics, and no account. Your settings stay on your device.
+Your tabs never leave your browser. Lulltab’s only network request is an optional, anonymous daily ping (a random install ID, the Lulltab and Chrome versions, and CPU type) that you can turn off in settings. No account, and your settings stay on your device.
 
 Free and open source under the MIT license: https://github.com/neelsatyavolu/lulltab

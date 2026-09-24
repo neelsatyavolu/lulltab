@@ -4,11 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacy policy — Lulltab</title>
-  <meta name="description" content="Lulltab collects no data. It makes no network requests and keeps your settings on your device.">
+  <meta name="description" content="Your tabs never leave your browser. Lulltab’s only network request is an optional, anonymous daily ping you can turn off. Settings stay on your device.">
   <meta name="theme-color" content="#171917">
   <link rel="icon" type="image/svg+xml" href="/assets/icon.svg">
   <link rel="icon" type="image/png" href="/assets/icon32.png">
   <link rel="stylesheet" href="/styles.css">
+  <script defer src="https://analytics.n3el.dev/p.js"></script>
 </head>
 <body>
   <header class="nav wrap">
@@ -23,12 +24,22 @@
     <p class="updated">Last updated September 23, 2026</p>
 
     <h2>The short version</h2>
-    <p>Lulltab doesn’t collect, sell, or share any data. It makes no network requests, and there is no Lulltab server.</p>
+    <p>Your tabs never leave your browser. Lulltab doesn’t sell or share any data, and there’s no account. Its only network request is an optional, anonymous daily ping, described below, that you can turn off in settings.</p>
+
+    <h2>Anonymous usage stats</h2>
+    <p>Once a day, Lulltab sends a small ping to <code>analytics.n3el.dev</code>, a server run by Lulltab’s developer, to count active installs. It contains:</p>
+    <ul>
+      <li>a random install ID, created when Lulltab first runs and not linked to you or your account;</li>
+      <li>the Lulltab version, your Chrome version, and your CPU type (for example <code>arm64</code>).</li>
+    </ul>
+    <p>It never includes your tabs, addresses, titles, settings, or anything else you do in the browser. No cookies are used. The server derives a country from the request and doesn’t store IP addresses. When you uninstall Lulltab, the browser opens a page on the same server that counts the uninstall and then forwards you to this site.</p>
+    <p>To turn it off, open Lulltab’s settings and uncheck <b>Share anonymous usage stats</b>. Lulltab then sends nothing, and uninstalls aren’t counted.</p>
 
     <h2>What stays on your device</h2>
     <ul>
       <li>Your settings — the idle timeout, the sites you keep awake, and switches like “Keep pinned tabs” — are saved in <code>chrome.storage.local</code>.</li>
       <li>When each tab was last used is kept in <code>chrome.storage.session</code>, which the browser clears when it closes.</li>
+      <li>A random install ID and the date of the last usage ping are saved in <code>chrome.storage.local</code>.</li>
       <li>If you turn on Debug mode, a short event log is saved in <code>chrome.storage.local</code>. It only leaves your device if you click <b>Copy report</b> and paste it somewhere yourself.</li>
     </ul>
 
@@ -37,7 +48,10 @@
       <li>Tab titles, addresses, and states (pinned, playing audio, sleeping), so it can decide which tabs to sleep and show them in the popup.</li>
       <li>How much memory each tab uses, for the Memory view. When the browser doesn’t report memory per process, Lulltab reads the page’s JavaScript memory size. It doesn’t read page content.</li>
     </ul>
-    <p>None of this is sent anywhere.</p>
+    <p>None of this is sent anywhere, including in the usage ping.</p>
+
+    <h2>This website</h2>
+    <p>lulltab.n3el.dev uses the same cookieless counter from <code>analytics.n3el.dev</code>. It records the page path, the referring site, your country, and coarse browser and device type. It sets no cookies and stores no IP addresses, and visits can’t be linked across days.</p>
 
     <h2>Changes</h2>
     <p>If this policy changes, the new version will be posted on this page with a new date. The source code is public on <a href="https://github.com/neelsatyavolu/lulltab">GitHub</a>, so you can check what the extension does.</p>

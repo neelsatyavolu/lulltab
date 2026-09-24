@@ -15,6 +15,7 @@
   <link rel="preload" href="/fonts/fraunces-italic.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/styles.css">
   <script src="/demo.js" defer></script>
+  <script defer src="https://analytics.n3el.dev/p.js"></script>
 </head>
 <body>
   <header class="nav wrap">
@@ -47,7 +48,7 @@
       <ul class="meta">
         <li>MIT licensed</li>
         <li>No account</li>
-        <li>No network requests</li>
+        <li>Tabs never leave your browser</li>
       </ul>
 
       <figure class="browser" aria-labelledby="demo-caption">
@@ -137,8 +138,8 @@
     </section>
 
     <section id="privacy" class="section wrap">
-      <h2>Nothing leaves your browser</h2>
-      <p class="lede narrow">Lulltab makes no network requests. There’s no server, no analytics, and no account. Settings stay in <code>chrome.storage.local</code>. Here is what each permission is for.</p>
+      <h2>Your tabs never leave your browser</h2>
+      <p class="lede narrow">Lulltab never sends your tabs, sites, or settings anywhere, and there’s no account. Its only network request is an optional, anonymous daily ping with a random install ID and version numbers, which you can turn off in settings (<a href="/privacy">details</a>). Settings stay in <code>chrome.storage.local</code>. Here is what each permission is for.</p>
       <table class="perms">
         <tbody>
           <tr><th scope="row"><code>tabs</code></th><td>See your tabs and discard idle ones.</td></tr>

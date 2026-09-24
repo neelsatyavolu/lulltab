@@ -12,6 +12,7 @@ let settings = {
   keepAudible: true,
   keepAsideChat: true,
   debug: false,
+  usageStats: true,
   whitelist: [
     { id: "d1", kind: "domain", pattern: "mail.google.com" },
     { id: "d2", kind: "wildcard", pattern: "notion.so" },
@@ -32,6 +33,7 @@ function bind() {
   $("audible").addEventListener("change", () => save({ keepAudible: $("audible").checked }));
   $("aside-chat").addEventListener("change", () => save({ keepAsideChat: $("aside-chat").checked }));
   $("debug").addEventListener("change", () => save({ debug: $("debug").checked }));
+  $("usage-stats").addEventListener("change", () => save({ usageStats: $("usage-stats").checked }));
   $("idle-minutes").addEventListener("input", () => {
     const idle = formatIdleMinutes(clampIdleMinutes($("idle-minutes").value));
     $("idle-value").textContent = idle.value;
@@ -50,6 +52,7 @@ function render() {
   $("audible").checked = settings.keepAudible;
   $("aside-chat").checked = settings.keepAsideChat !== false;
   $("debug").checked = settings.debug === true;
+  $("usage-stats").checked = settings.usageStats !== false;
   $("idle-minutes").value = String(settings.idleMinutes);
   const idle = formatIdleMinutes(settings.idleMinutes);
   $("idle-value").textContent = idle.value;
