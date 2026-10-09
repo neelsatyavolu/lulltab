@@ -35,9 +35,11 @@ function bind() {
   $("debug").addEventListener("change", () => save({ debug: $("debug").checked }));
   $("usage-stats").addEventListener("change", () => save({ usageStats: $("usage-stats").checked }));
   $("idle-minutes").addEventListener("input", () => {
-    const idle = formatIdleMinutes(clampIdleMinutes($("idle-minutes").value));
+    const raw = $("idle-minutes").value;
+    if (raw === "" || raw === "-") return;
+    const idle = formatIdleMinutes(clampIdleMinutes(raw));
     $("idle-value").textContent = idle.value;
-    $("idle-unit").textContent = idle.unit || "idle";
+    $("idle-unit").textContent = idle.unit;
   });
   $("idle-minutes").addEventListener("change", () => {
     save({ idleMinutes: clampIdleMinutes($("idle-minutes").value) });
@@ -56,7 +58,7 @@ function render() {
   $("idle-minutes").value = String(settings.idleMinutes);
   const idle = formatIdleMinutes(settings.idleMinutes);
   $("idle-value").textContent = idle.value;
-  $("idle-unit").textContent = idle.unit || "idle";
+  $("idle-unit").textContent = idle.unit;
 
   const list = $("rules");
   list.innerHTML = "";
@@ -138,6 +140,12 @@ async function save(partial) {
     render();
     return;
   }
-  settings = await setSettings(partial);
-  render();
+  try {
+    settings = await setSettings(partial);
+    render();
+  } catch (error) {
+    $("error").hidden = false;
+    $("error").textContent = error?.message || "Couldn’t save settings.";
+    render();
+  }
 }

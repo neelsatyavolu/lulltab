@@ -1,7 +1,20 @@
 html,
 body {
   width: 360px;
-  overflow: hidden;
+  max-height: 600px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+body::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
 }
 
 .sheet {
@@ -253,8 +266,12 @@ h1 {
   font-size: 12px;
 }
 
-.empty {
+.empty,
+.rows li.empty {
+  display: block;
   margin: 8px 0;
+  padding: 0;
+  border: 0;
   color: var(--faint);
   font-size: 13px;
 }

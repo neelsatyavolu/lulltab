@@ -27,6 +27,9 @@ let debug = demo ? demoDebug() : null;
 let view = "still";
 let wordmarkClicks = [];
 let memoryTimer = null;
+let memoryFlight = null;
+let idleAnchor = null;
+let actionError = "";
 
 init();
 
@@ -36,14 +39,17 @@ async function init() {
   $("sleep").addEventListener("click", () => act("SLEEP_TAB", { tabId: state?.currentTab?.id }));
   $("keep").addEventListener("click", onKeep);
   $("sleep-others").addEventListener("click", () => act("SLEEP_OTHERS"));
-  $("idle").addEventListener("input", onIdleInput);
+  $("idle").addEventListener("input", onIdlePreview);
+  $("idle").addEventListener("change", onIdleCommit);
   $("ram-refresh").addEventListener("click", () => loadMemory());
   $("debug-copy").addEventListener("click", copyDebugReport);
   $("debug-clear").addEventListener("click", () => act("CLEAR_DEBUG"));
   $("wordmark").addEventListener("click", onWordmark);
-  for (const button of document.querySelectorAll(".segment [data-view]")) {
+  const segment = document.querySelector(".segment");
+  for (const button of segment.querySelectorAll("[data-view]")) {
     button.addEventListener("click", () => setView(button.dataset.view));
   }
+  segment.addEventListener("keydown", onTabKey);
   $("options").addEventListener("click", (event) => {
     if (!demo && chrome.runtime.openOptionsPage) {
       event.preventDefault();
@@ -55,9 +61,26 @@ async function init() {
 
 async function refresh() {
   if (!demo) {
-    const response = await chrome.runtime.sendMessage({ type: "GET_STATE" });
-    if (!response?.ok) return;
-    state = response;
+    try {
+      let windowId;
+      try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        windowId = tab?.windowId;
+      } catch {
+        windowId = undefined;
+      }
+      const response = await chrome.runtime.sendMessage({ type: "GET_STATE", windowId });
+      if (!response?.ok) {
+        actionError = actionError || response?.error || "Couldn’t reach Lulltab.";
+        render();
+        return;
+      }
+      state = response;
+    } catch (error) {
+      actionError = actionError || error?.message || "Couldn’t reach Lulltab.";
+      render();
+      return;
+    }
   }
   render();
   if (view === "memory") await loadMemory();
@@ -65,6 +88,10 @@ async function refresh() {
 }
 
 function render() {
+  if (!state?.settings) {
+    if (actionError) $("why").textContent = actionError;
+    return;
+  }
   const settings = state.settings;
   $("toggle").setAttribute("aria-checked", settings.enabled ? "true" : "false");
   document.body.classList.toggle("is-off", !settings.enabled && view === "still");
@@ -88,12 +115,20 @@ function renderStill() {
   const settings = state.settings;
   const current = state.currentTab;
   const presetIndex = nearestPreset(settings.idleMinutes);
-  $("idle").value = String(presetIndex);
-  const idle = formatIdleMinutes(IDLE_PRESETS[presetIndex]);
-  $("idle-value").textContent = idle.value;
-  $("idle-unit").textContent = idle.unit;
+  if (document.activeElement !== $("idle")) {
+    $("idle").value = String(presetIndex);
+    idleAnchor = presetIndex;
+    paintIdle(settings.idleMinutes);
+  }
 
-  if (current) {
+  if (!current) {
+    $("title").textContent = "This tab";
+    $("host").textContent = "—";
+    $("status").textContent = "—";
+    $("why").textContent = "Open a page to manage it.";
+    $("sleep").disabled = true;
+    $("keep").disabled = true;
+  } else {
     $("title").textContent = current.title || "Tab";
     $("host").textContent = hostnameOf(current.url) || current.url || "This tab";
     paintFav($("fav"), current);
@@ -108,6 +143,9 @@ function renderStill() {
     $("keep").setAttribute("aria-label", kept ? "Site kept" : "Keep site");
   }
 
+  if (actionError) $("why").textContent = actionError;
+  else if (!settings.enabled) $("why").textContent = "Paused. Tabs won’t sleep on their own.";
+
   const tabs = (state.tabs || []).filter(isWebTab);
   const awake = tabs.filter((tab) => !tab.discarded);
   const asleep = tabs.filter((tab) => tab.discarded);
@@ -117,10 +155,7 @@ function renderStill() {
   const openShow = awake.slice(0, 3);
   const sleepShow = asleep.slice(0, 3);
   if (!openShow.length && !sleepShow.length) {
-    const empty = document.createElement("p");
-    empty.className = "empty";
-    empty.textContent = "No tabs.";
-    list.append(empty);
+    list.append(emptyRow("No tabs."));
     return;
   }
   if (openShow.length) {
@@ -163,13 +198,14 @@ function renderMemory() {
   const rows = sortMemoryRows(memory.rows || []);
   const max = Math.max(1, ...rows.map((row) => (row.discarded ? 0 : Number(row.bytes) || 0)));
   if (!rows.length) {
-    const empty = document.createElement("p");
-    empty.className = "empty";
-    empty.textContent = "No tabs.";
-    list.append(empty);
+    list.append(emptyRow("No tabs."));
     return;
   }
   const web = rows.filter(isWebTab);
+  if (!web.length) {
+    list.append(emptyRow("No tabs."));
+    return;
+  }
   const awake = web.filter((tab) => !tab.discarded);
   const asleep = web.filter((tab) => tab.discarded);
   const openShow = awake.slice(0, 4);
@@ -209,10 +245,7 @@ function renderDebug() {
   list.innerHTML = "";
   const entries = [...(debug.log || [])].reverse();
   if (!entries.length) {
-    const empty = document.createElement("p");
-    empty.className = "empty";
-    empty.textContent = "No events yet. Leave debug on and use the extension.";
-    list.append(empty);
+    list.append(emptyRow("No events yet. Leave debug on and use the extension."));
     return;
   }
   for (const entry of entries.slice(0, DEBUG_MAX)) {
@@ -235,6 +268,13 @@ function renderDebug() {
 function isWebTab(tab) {
   const url = tab.url || "";
   return /^(https?|ftp):/i.test(url);
+}
+
+function emptyRow(text) {
+  const li = document.createElement("li");
+  li.className = "empty";
+  li.textContent = text;
+  return li;
 }
 
 function groupRow(label) {
@@ -270,6 +310,13 @@ function tabRow(tab) {
   } else {
     action.textContent = "Sleep";
     action.disabled = tab.active || isInternalUrl(tab.url) || tab.reason === "aside-chat";
+    if (action.disabled) {
+      action.title = tab.active
+        ? "This tab is open"
+        : tab.reason === "aside-chat"
+          ? "Aside chat is running"
+          : "Browser pages stay loaded";
+    }
     action.addEventListener("click", () => act("SLEEP_TAB", { tabId: tab.id }));
   }
   li.append(meta, action);
@@ -298,7 +345,8 @@ function memoryRow(tab, max) {
     action.addEventListener("click", () => act("WAKE_TAB", { tabId: tab.id }));
   } else {
     action.textContent = "Sleep";
-    action.disabled = tab.active;
+    action.disabled = tab.active || tab.canSleep === false;
+    if (action.disabled) action.title = tab.active ? "This tab is open" : "This tab stays awake";
     action.addEventListener("click", () => act("SLEEP_TAB", { tabId: tab.id }));
   }
   const bar = document.createElement("div");
@@ -337,9 +385,26 @@ async function loadMemory() {
     renderMemory();
     return;
   }
-  const response = await chrome.runtime.sendMessage({ type: "GET_MEMORY" });
-  if (response?.ok) memory = response;
-  renderMemory();
+  if (memoryFlight) return memoryFlight;
+  memoryFlight = (async () => {
+    let failed = "";
+    try {
+      const response = await chrome.runtime.sendMessage({ type: "GET_MEMORY" });
+      if (response?.ok) memory = response;
+      else failed = response?.error || "Couldn’t read memory. Try refresh.";
+    } catch {
+      failed = "Couldn’t read memory. Try refresh.";
+    } finally {
+      memoryFlight = null;
+    }
+    renderMemory();
+    if (failed) {
+      const note = $("ram-note");
+      note.hidden = false;
+      note.textContent = failed;
+    }
+  })();
+  return memoryFlight;
 }
 
 async function loadDebug() {
@@ -347,22 +412,57 @@ async function loadDebug() {
     renderDebug();
     return;
   }
-  const response = await chrome.runtime.sendMessage({ type: "GET_DEBUG" });
-  if (response?.ok) debug = response;
+  try {
+    const response = await chrome.runtime.sendMessage({ type: "GET_DEBUG" });
+    if (response?.ok) debug = response;
+  } catch {
+    /* leave the last log on screen */
+  }
   renderDebug();
 }
 
 async function onToggle() {
+  if (!demo && !state?.settings) return;
   const enabled = $("toggle").getAttribute("aria-checked") !== "true";
   await act("SET_SETTINGS", { partial: { enabled } });
 }
 
-async function onIdleInput(event) {
-  const minutes = IDLE_PRESETS[Number(event.target.value)] || 15;
+function onIdlePreview(event) {
+  paintIdle(IDLE_PRESETS[Number(event.target.value)] || 15);
+}
+
+async function onIdleCommit(event) {
+  const index = Number(event.target.value);
+  if (index === idleAnchor) {
+    if (state?.settings) paintIdle(state.settings.idleMinutes);
+    return;
+  }
+  const minutes = IDLE_PRESETS[index] || 15;
+  paintIdle(minutes);
+  await act("SET_SETTINGS", { partial: { idleMinutes: minutes } });
+}
+
+function paintIdle(minutes) {
   const idle = formatIdleMinutes(minutes);
   $("idle-value").textContent = idle.value;
   $("idle-unit").textContent = idle.unit;
-  await act("SET_SETTINGS", { partial: { idleMinutes: minutes } });
+  $("idle").setAttribute("aria-valuetext", [idle.value, idle.unit].filter(Boolean).join(" "));
+}
+
+function onTabKey(event) {
+  const keys = ["ArrowRight", "ArrowLeft", "Home", "End"];
+  if (!keys.includes(event.key)) return;
+  const buttons = [...document.querySelectorAll(".segment [data-view]")].filter((button) => !button.hidden);
+  const index = buttons.indexOf(document.activeElement);
+  if (index < 0) return;
+  event.preventDefault();
+  let next = index;
+  if (event.key === "ArrowRight") next = (index + 1) % buttons.length;
+  if (event.key === "ArrowLeft") next = (index - 1 + buttons.length) % buttons.length;
+  if (event.key === "Home") next = 0;
+  if (event.key === "End") next = buttons.length - 1;
+  buttons[next].focus();
+  buttons[next].click();
 }
 
 async function onKeep() {
@@ -383,28 +483,38 @@ async function onWordmark() {
 }
 
 async function copyDebugReport() {
+  const note = $("debug-copied");
   const text = debug?.report || "";
   try {
     await navigator.clipboard.writeText(text);
-    $("debug-copied").hidden = false;
+    note.textContent = "Copied.";
+    note.hidden = false;
     setTimeout(() => {
-      $("debug-copied").hidden = true;
+      note.hidden = true;
     }, 1500);
   } catch {
-    $("debug-copied").hidden = false;
-    $("debug-copied").textContent = "Copy failed — select the log instead.";
+    note.textContent = "Copy failed — select the log instead.";
+    note.hidden = false;
   }
 }
 
 async function act(type, extra = {}) {
+  const needsState = type === "SLEEP_TAB" || type === "WAKE_TAB" || type === "SLEEP_OTHERS" || type === "WHITELIST_ADD";
+  if (!demo && !state && needsState) return;
   if (demo) {
     applyDemo(type, extra);
+    actionError = "";
     render();
     return;
   }
-  const response = await chrome.runtime.sendMessage({ type, ...extra });
-  if (response?.error) console.warn(response.error);
-  if (type === "CLEAR_DEBUG" && response?.ok) debug = response;
+  try {
+    const response = await chrome.runtime.sendMessage({ type, ...extra });
+    if (response?.ok === false) actionError = response.error || "Something went wrong.";
+    else actionError = "";
+    if (type === "CLEAR_DEBUG" && response?.ok) debug = response;
+  } catch (error) {
+    actionError = error?.message || "Couldn’t reach Lulltab.";
+  }
   await refresh();
 }
 
@@ -427,6 +537,11 @@ function paintFav(node, tab) {
     const img = document.createElement("img");
     img.src = tab.favIconUrl;
     img.alt = "";
+    img.addEventListener("error", () => {
+      if (!node.contains(img)) return;
+      node.replaceChildren();
+      node.textContent = faviconLetter(tab.title, tab.url);
+    });
     node.append(img);
     return;
   }
@@ -560,7 +675,7 @@ function demoDebug() {
     probes,
     counts,
     log,
-    report: JSON.stringify({ lulltab: "1.1.0", probes, counts, log }, null, 2),
+    report: JSON.stringify({ lulltab: "1.3.1", probes, counts, log }, null, 2),
   };
 }
 

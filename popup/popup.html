@@ -25,12 +25,12 @@
       </header>
 
       <div class="segment" role="tablist" aria-label="Views">
-        <button id="tab-still" type="button" role="tab" aria-selected="true" data-view="still">Tabs</button>
-        <button id="tab-memory" type="button" role="tab" aria-selected="false" data-view="memory">Memory</button>
-        <button id="tab-debug" type="button" role="tab" aria-selected="false" data-view="debug" hidden>Debug</button>
+        <button id="tab-still" type="button" role="tab" aria-selected="true" aria-controls="view-still" data-view="still">Tabs</button>
+        <button id="tab-memory" type="button" role="tab" aria-selected="false" aria-controls="view-memory" data-view="memory">Memory</button>
+        <button id="tab-debug" type="button" role="tab" aria-selected="false" aria-controls="view-debug" data-view="debug" hidden>Debug</button>
       </div>
 
-      <div id="view-still">
+      <div id="view-still" role="tabpanel" aria-labelledby="tab-still">
         <section class="now">
           <div class="tab-row">
             <div id="fav" class="fav" aria-hidden="true">?</div>
@@ -40,7 +40,7 @@
             </div>
             <span id="status" class="state">Awake</span>
           </div>
-          <p id="why" class="why">Open a page to manage it.</p>
+          <p id="why" class="why" aria-live="polite">Open a page to manage it.</p>
           <div class="actions">
             <button id="sleep" class="btn primary" type="button">Sleep</button>
             <button id="keep" class="btn ghost" type="button" aria-label="Keep site">
@@ -73,7 +73,7 @@
         </section>
       </div>
 
-      <div id="view-memory" hidden>
+      <div id="view-memory" role="tabpanel" aria-labelledby="tab-memory" hidden>
         <section class="rest">
           <div class="rest-row">
             <p class="kicker">Open tabs</p>
@@ -94,7 +94,7 @@
         </section>
       </div>
 
-      <div id="view-debug" hidden>
+      <div id="view-debug" role="tabpanel" aria-labelledby="tab-debug" hidden>
         <section class="roster">
           <div class="roster-head">
             <p class="kicker">Debug</p>
