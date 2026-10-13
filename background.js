@@ -1,5 +1,5 @@
 import { getSettings, setSettings } from "./lib/settings.js";
-import { parsePattern, isWhitelisted } from "./lib/whitelist.js";
+import { parsePattern, isWhitelisted, ruleForHostname } from "./lib/whitelist.js";
 import {
   classifyTab,
   isInternalUrl,
@@ -51,43 +51,49 @@ function queueInit(reason) {
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === ALARM) {
-    initLock.then(() => scan()).catch(console.warn);
-    getSettings().then((settings) => maybeSendPing(settings.usageStats)).catch(console.warn);
-  }
+  if (alarm.name !== ALARM) return undefined;
+  // Returning the promise keeps the service worker alive until the scan finishes.
+  return Promise.all([
+    initLock.then(() => scan()),
+    getSettings().then((settings) => maybeSendPing(settings.usageStats)),
+  ]).catch(console.warn);
 });
 
 chrome.tabs.onActivated.addListener(({ tabId, windowId }) => {
-  initLock
+  return initLock
     .then(() => noteActivation(tabId, windowId))
     .then(() => scan())
     .catch(console.warn);
 });
 
 chrome.tabs.onCreated.addListener((tab) => {
-  if (tab.id != null) touch(tab.id).catch(console.warn);
+  const tasks = [];
+  if (tab.id != null) tasks.push(touch(tab.id));
+  tasks.push(applyAutoDiscardable(tab));
+  return Promise.all(tasks).catch(console.warn);
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => {
-  forget(tabId).catch(console.warn);
+  return forget(tabId).catch(console.warn);
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.discarded === false) touch(tabId).catch(console.warn);
+  const tasks = [];
+  if (changeInfo.discarded === false) tasks.push(touch(tabId));
   if (changeInfo.pinned != null || changeInfo.audible != null || changeInfo.url) {
-    applyAutoDiscardable(tab).catch(console.warn);
+    tasks.push(applyAutoDiscardable(tab));
   }
-  if (changeInfo.status === "complete") updateBadge().catch(console.warn);
+  if (changeInfo.status === "complete") tasks.push(updateBadge());
+  if (!tasks.length) return undefined;
+  return Promise.all(tasks).catch(console.warn);
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "local" && changes["still.settings"]) {
-    syncUsagePing().catch(console.warn);
-    initLock
-      .then(() => scan())
-      .then(() => protectWhitelisted())
-      .catch(console.warn);
-  }
+  if (area !== "local" || !changes["still.settings"]) return undefined;
+  return Promise.all([
+    syncUsagePing(),
+    initLock.then(() => scan()).then(() => protectWhitelisted()),
+  ]).catch(console.warn);
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -98,16 +104,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 });
 
 chrome.commands.onCommand.addListener((command) => {
-  if (command === "sleep-tab") sleepActive().catch(console.warn);
+  if (command === "sleep-tab") return sleepActive().catch(console.warn);
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "sleep") {
-    if (tab?.id != null) sleepTab(tab.id).catch(console.warn);
+    if (tab?.id != null) return sleepTab(tab.id).catch(console.warn);
   } else if (info.menuItemId === "whitelist-site") {
-    whitelistTab(tab).catch(console.warn);
+    return whitelistTab(tab).catch(console.warn);
   } else if (info.menuItemId === "sleep-others") {
-    sleepOthers().catch(console.warn);
+    return sleepOthers().catch(console.warn);
   }
 });
 
@@ -162,7 +168,7 @@ function createMenu(item) {
 async function handleMessage(message) {
   switch (message?.type) {
     case "GET_STATE":
-      return { ok: true, ...(await getState()) };
+      return { ok: true, ...(await getState(message.windowId)) };
     case "SET_SETTINGS":
       await setSettings(message.partial || {});
       if (message.partial?.debug) await debugLog("debug-on");
@@ -196,13 +202,13 @@ async function handleMessage(message) {
   }
 }
 
-async function getState() {
+async function getState(windowId) {
   const settings = await getSettings();
   const access = await getAccess();
   const now = Date.now();
   const tabs = await chrome.tabs.query({});
   const asideBusy = await getAsideBusyTabIds(tabs);
-  const current = tabs.find((tab) => tab.active && tab.highlighted) || tabs.find((tab) => tab.active);
+  const current = await resolveCurrentTab(tabs, windowId);
   const rows = tabs.map((tab) => {
     const verdict = classifyTab(tab, {
       now,
@@ -237,7 +243,10 @@ async function getState() {
 }
 
 async function getMemoryStats() {
-  const tabs = (await chrome.tabs.query({})).map((tab) => ({
+  const settings = await getSettings();
+  const all = await chrome.tabs.query({});
+  const asideBusy = await getAsideBusyTabIds(all);
+  const tabs = all.map((tab) => ({
     id: tab.id,
     title: tab.title || hostnameOf(tab.url) || "Tab",
     url: tab.url || "",
@@ -245,6 +254,9 @@ async function getMemoryStats() {
     discarded: Boolean(tab.discarded),
     active: Boolean(tab.active),
     pinned: Boolean(tab.pinned),
+    canSleep:
+      !isInternalUrl(tab.url) &&
+      !(settings.keepAsideChat !== false && (asideBusy.has(tab.id) || isAsideChatTitle(tab.title))),
   }));
   const collected = await collectTabRam(tabs);
   const rows = tabs.map((tab) => {
@@ -472,7 +484,14 @@ async function getDebugState() {
     sleeping: tabs.filter((tab) => tab.discarded).length,
     access: Object.keys(await getAccess()).length,
   };
-  const report = buildDebugReport({ settings, probes, counts, alarm, log });
+  const report = buildDebugReport({
+    version: chrome.runtime.getManifest().version,
+    settings,
+    probes,
+    counts,
+    alarm,
+    log,
+  });
   return { settings, probes, counts, alarm, log, report };
 }
 
@@ -517,6 +536,10 @@ async function scan() {
 async function sleepTab(tabId) {
   if (tabId == null) return;
   const tab = await chrome.tabs.get(tabId);
+  if (tab.discarded) {
+    await updateBadge();
+    return;
+  }
   if (tab.active) {
     const others = await chrome.tabs.query({ windowId: tab.windowId });
     const fallback = others.find((item) => item.id !== tab.id && !item.discarded) || others.find((item) => item.id !== tab.id);
@@ -591,17 +614,34 @@ async function sleepOthers() {
 }
 
 async function sleepActive() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  let [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  if (!tab?.id) {
+    [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  }
   if (!tab?.id) return;
-  const others = await chrome.tabs.query({ windowId: tab.windowId });
-  const fallback = others.find((item) => item.id !== tab.id);
-  if (fallback?.id != null) await chrome.tabs.update(fallback.id, { active: true });
   await sleepTab(tab.id);
 }
 
+async function resolveCurrentTab(tabs, windowId) {
+  const numeric = Number(windowId);
+  if (Number.isInteger(numeric)) {
+    const match = tabs.find((tab) => tab.active && tab.windowId === numeric);
+    if (match) return match;
+  }
+  try {
+    const [focused] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    if (focused) return tabs.find((tab) => tab.id === focused.id) || focused;
+  } catch {
+    /* fall through */
+  }
+  return tabs.find((tab) => tab.active && tab.highlighted) || tabs.find((tab) => tab.active) || null;
+}
+
 async function addWhitelist(input, tabUrl) {
-  const source = input && String(input).trim() ? input : hostnameOf(tabUrl);
-  const parsed = parsePattern(source);
+  const typed = input && String(input).trim();
+  const source = typed || hostnameOf(tabUrl);
+  if (!source) throw new Error("This tab has no site to keep.");
+  const parsed = typed ? parsePattern(typed) : ruleForHostname(source);
   const settings = await getSettings();
   const exists = settings.whitelist.some(
     (rule) => rule.kind === parsed.kind && rule.pattern === parsed.pattern
@@ -770,15 +810,24 @@ async function setActiveMap(active) {
 async function protectWhitelisted(tabsArg, settingsArg) {
   const settings = settingsArg || (await getSettings());
   const tabs = tabsArg || (await chrome.tabs.query({}));
+  const asideBusy =
+    settings.enabled === false && settings.keepAsideChat !== false
+      ? await getAsideBusyTabIds(tabs)
+      : new Set();
   for (const tab of tabs) {
-    await applyAutoDiscardable(tab, settings);
+    await applyAutoDiscardable(tab, settings, asideBusy.has(tab.id));
   }
 }
 
-async function applyAutoDiscardable(tab, settingsArg) {
+async function applyAutoDiscardable(tab, settingsArg, asideBusy) {
   if (tab?.id == null || isInternalUrl(tab.url)) return;
   const settings = settingsArg || (await getSettings());
-  const autoDiscardable = allowsBrowserDiscard(tab, settings);
+  let busy = asideBusy;
+  if (busy == null && settings.enabled === false && settings.keepAsideChat !== false && tab.groupId > -1) {
+    const ids = await getAsideBusyTabIds([tab]);
+    busy = ids.has(tab.id);
+  }
+  const autoDiscardable = allowsBrowserDiscard(tab, settings, Boolean(busy));
   if (tab.autoDiscardable === autoDiscardable) return;
   try {
     await chrome.tabs.update(tab.id, { autoDiscardable });

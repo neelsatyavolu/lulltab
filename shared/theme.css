@@ -99,6 +99,13 @@ button {
   cursor: pointer;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--rest);
+  outline-offset: 2px;
+}
+
 .kicker {
   margin: 0;
   color: var(--muted);
@@ -266,6 +273,11 @@ h2 {
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
+.check input:focus-visible {
+  outline: 2px solid var(--rest);
+  outline-offset: 2px;
+}
+
 .check input:checked {
   background: var(--rest);
   box-shadow: none;
@@ -296,8 +308,9 @@ h2 {
   background: transparent;
 }
 
-.range:focus {
-  outline: none;
+.range:focus-visible {
+  outline: 2px solid var(--rest);
+  outline-offset: 3px;
 }
 
 .range::-webkit-slider-runnable-track {

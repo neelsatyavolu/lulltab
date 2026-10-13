@@ -89,13 +89,15 @@
               class="field"
               type="text"
               placeholder="example.com"
+              aria-label="Site, domain, or pattern"
+              aria-describedby="preview error"
               autocomplete="off"
               spellcheck="false"
             />
             <button class="btn primary" type="submit">Add</button>
           </form>
           <p id="preview" class="preview"></p>
-          <p id="error" class="error" hidden></p>
+          <p id="error" class="error" role="alert" hidden></p>
           <ul id="rules" class="rules"></ul>
         </section>
       </div>

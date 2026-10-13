@@ -180,7 +180,8 @@ th, td { padding: 13px 0; border-bottom: 1px solid var(--line); text-align: left
   .viewport { grid-template-columns: 1fr; gap: 24px; }
 }
 @media (max-width: 600px) {
-  .nav-links a:not(.btn) { display: none; }
+  .nav { flex-wrap: wrap; }
+  .nav-links { width: 100%; flex-wrap: wrap; gap: 10px 16px; }
   .cta .btn { flex: 1 1 100%; }
   .controls { grid-template-columns: 1fr; }
   .controls dt { padding-bottom: 2px; border-bottom: 0; }

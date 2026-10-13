@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parsePattern, matchesRule, isWhitelisted, describeRule } from "../lib/whitelist.js";
+import { parsePattern, matchesRule, isWhitelisted, describeRule, ruleForHostname } from "../lib/whitelist.js";
 import {
   classifyTab,
   formatDuration,
@@ -67,12 +67,32 @@ test("url prefix matches descendants", () => {
   assert.equal(matchesRule("https://github.com/neel/still", rule), true);
   assert.equal(matchesRule("https://github.com/neel", rule), true);
   assert.equal(matchesRule("https://github.com/other/repo", rule), false);
+  assert.equal(matchesRule("https://github.com/neel?tab=readme", rule), true);
+  assert.equal(matchesRule("https://github.com/neelisha?tab=readme", rule), false);
 });
 
 test("path prefix without scheme", () => {
   const rule = parsePattern("github.com/neel");
   assert.equal(matchesRule("https://github.com/neel/still", rule), true);
   assert.equal(matchesRule("https://github.com/neelisha", rule), false);
+  assert.equal(matchesRule("https://www.github.com/neel?tab=1", rule), true);
+});
+
+test("query prefixes keep extra parameters and reject lookalikes", () => {
+  const rule = parsePattern("https://example.com/search?q=test");
+  assert.equal(matchesRule("https://example.com/search?q=test", rule), true);
+  assert.equal(matchesRule("https://example.com/search?q=test&page=2", rule), true);
+  assert.equal(matchesRule("https://example.com/search?q=testing", rule), false);
+});
+
+test("keeping a site accepts single-label hosts", () => {
+  assert.deepEqual(ruleForHostname("mail.google.com"), { kind: "domain", pattern: "mail.google.com" });
+  assert.deepEqual(ruleForHostname("www.github.com"), { kind: "domain", pattern: "github.com" });
+  assert.deepEqual(ruleForHostname("localhost"), { kind: "host", pattern: "localhost" });
+  assert.deepEqual(ruleForHostname("::1"), { kind: "host", pattern: "::1" });
+  assert.equal(matchesRule("http://localhost:3000/app", ruleForHostname("localhost")), true);
+  assert.equal(matchesRule("http://localhost.example/", ruleForHostname("localhost")), false);
+  assert.throws(() => ruleForHostname(""), /site/);
 });
 
 test("whitelist scans a list of rules", () => {
@@ -215,6 +235,17 @@ test("browser memory saver cannot discard while Lulltab is enabled", () => {
     ),
     false
   );
+  const aside = { url: "https://docs.google.com", title: "Notes ⋅ Chats", pinned: false, audible: false };
+  assert.equal(allowsBrowserDiscard(aside, mergeSettings({ enabled: false, keepAsideChat: true })), false);
+  assert.equal(
+    allowsBrowserDiscard(
+      { url: "https://docs.google.com", title: "Notes", pinned: false },
+      mergeSettings({ enabled: false, keepAsideChat: true }),
+      true
+    ),
+    false
+  );
+  assert.equal(allowsBrowserDiscard(aside, mergeSettings({ enabled: false, keepAsideChat: false })), true);
 });
 
 test("missing lastAccess is treated as just seen", () => {
