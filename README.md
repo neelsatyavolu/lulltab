@@ -3,12 +3,15 @@
 A memory saver for [Aside](https://aside.ai), Chrome, and other Chromium browsers. Idle tabs go to sleep; click one and it wakes.
 
 **Website:** https://lulltab.n3el.dev ·
+**Chrome Web Store:** [Lulltab](https://chromewebstore.google.com/detail/lulltab/koilonckhflgomjkphaoehnheeplagfj) ·
 **Download:** [lulltab.zip](https://github.com/neelsatyavolu/lulltab/releases/latest/download/lulltab.zip) ·
 **License:** [MIT](LICENSE)
 
 Lulltab uses the browser’s native **tab discard**. The tab stays in the strip. The page unloads from memory. Coming back reloads it.
 
-## Install from a release
+## Install
+
+Install Lulltab from the [Chrome Web Store](https://chromewebstore.google.com/detail/lulltab/koilonckhflgomjkphaoehnheeplagfj), or load a release build by hand:
 
 1. Download [`lulltab.zip`](https://github.com/neelsatyavolu/lulltab/releases/latest/download/lulltab.zip) and unzip it.
 2. Open `chrome://extensions` (or `aside://extensions`) and turn on **Developer mode**.
@@ -20,14 +23,15 @@ There’s no build step. Clone the repo and **Load unpacked** → the repo folde
 
 ## What it does
 
-- Sleeps tabs after a timeout you set (default 15 minutes)
+- Sleeps tabs after a timeout you set (default 15 minutes), counted from when you leave the tab
 - Restores a tab the moment you activate it
 - Whitelist domains, exact hosts, subdomains, paths, and URL prefixes
-- Skips pinned tabs, audible tabs, and browser pages
-- Popup: sleep now, keep this site, wake sleeping tabs
+- Skips pinned tabs, audible tabs, and browser pages, and keeps a tab awake while its Aside chat is running
+- While Lulltab is on, the browser's own memory saver can't discard tabs, so only Lulltab's timer does
+- Popup: sleep now, keep this site, wake or sleep any tab, sleep the rest
 - Memory tab: RAM per loaded tab (sleeping tabs show as unloaded)
 - Debug mode: event log, API probes, copy-a-report
-- Right-click: Sleep this tab / Never sleep this site
+- Right-click: Sleep this tab / Never sleep this site (the toolbar icon also has Sleep all other tabs)
 - Shortcut: `Alt+Shift+S` sleeps the current tab
 
 ## Privacy
